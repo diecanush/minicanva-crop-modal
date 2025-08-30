@@ -267,7 +267,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
 
   let clip;
   if(shape === 'circle'){
-    const radius = Math.max(w, h) / 2;
+    const radius = Math.min(w, h) / 2;
     clip = new fabric.Circle({
       radius,
       originX: 'center',
@@ -277,14 +277,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
       fill: new fabric.Gradient({
         type: 'radial',
         gradientUnits: 'pixels',
-        coords: {
-          x1: 0,
-          y1: 0,
-          r1: Math.max(radius - f, 0),
-          x2: 0,
-          y2: 0,
-          r2: radius
-        },
+        coords: { x1: radius, y1: radius, r1: Math.max(radius - f, 0), x2: radius, y2: radius, r2: radius },
         colorStops: [
           { offset: 0, color: 'rgba(0,0,0,1)' },
           { offset: 1, color: 'rgba(0,0,0,0)' }
@@ -292,7 +285,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
       })
     });
   } else {
-    const maxR = Math.max(w, h) / 2;
+    const r2 = Math.hypot(w/2, h/2);
     clip = new fabric.Rect({
       width: w,
       height: h,
@@ -303,14 +296,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
       fill: new fabric.Gradient({
         type: 'radial',
         gradientUnits: 'pixels',
-        coords: {
-          x1: 0,
-          y1: 0,
-          r1: Math.max(maxR - f, 0),
-          x2: 0,
-          y2: 0,
-          r2: maxR
-        },
+        coords: { x1: w/2, y1: h/2, r1: Math.max(r2 - f, 0), x2: w/2, y2: h/2, r2 },
         colorStops: [
           { offset: 0, color: 'rgba(0,0,0,1)' },
           { offset: 1, color: 'rgba(0,0,0,0)' }
@@ -320,12 +306,17 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   }
 
   obj.clipPath = clip;
+  obj._featherClip = clip;
   canvas.requestRenderAll();
 }
 
 export function removeFeatherMaskFromActive(){
   const obj = canvas.getActiveObject();
   if(!obj || !(obj instanceof fabric.Image)) return;
+  if(obj._featherClip){
+    obj._featherClip.dispose?.();
+    delete obj._featherClip;
+  }
   obj.clipPath = null;
   canvas.requestRenderAll();
 }
