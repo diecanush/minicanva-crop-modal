@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini Canva — recorte con modal (Cropper.js)</title>
+
+  <!-- Librerías base -->
+  <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Cropper.js (para el modal de recorte) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header id="header">
+    <div class="header-inner">
+      <div class="row">
+        <button id="btnOpenTools" class="btn" title="Herramientas">☰</button>
+        <strong class="brand">Mini Canva</strong>
+      </div>
+      <div class="row" id="deskBar" style="display:none;">
+        <button id="btnNew" class="btn btn-primary">Nuevo</button>
+        <div class="row">
+          <label class="lbl">Formato</label>
+          <select id="selAspect" class="field">
+            <option value="1:1" selected>1:1 (1080×1080)</option>
+            <option value="4:3">4:3 (1200×900)</option>
+            <option value="3:4">3:4 (900×1200)</option>
+            <option value="9:16">9:16 (1080×1920)</option>
+            <option value="16:9">16:9 (1920×1080)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label class="lbl">Fondo</label>
+          <input id="inpBg" type="color" class="field color" value="#ffffff" />
+        </div>
+        <div class="row sep-left">
+          <label class="lbl">Export</label>
+          <select id="selScale" class="field">
+            <option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option>
+          </select>
+          <label class="row chk"><input id="chkMono" type="checkbox" /> Monocromático</label>
+          <button id="btnPNG" class="btn btn-ok">PNG</button>
+          <button id="btnPDF" class="btn btn-alt">PDF</button>
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnOpenHelp" class="btn" title="Ayuda">❓</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="shell">
+    <aside id="leftPanel">
+      <div class="panel-head">
+        <div class="panel-title">Herramientas</div>
+        <button class="btn" id="btnCloseTools">✕</button>
+      </div>
+
+      <details open><summary>Insertar</summary>
+        <div class="grid-2">
+          <button id="btnText" class="btn">Texto</button>
+          <label class="btn filelabel">Imagen
+            <input id="fileImg" type="file" accept="image/*" />
+          </label>
+          <button id="btnQRWA" class="btn">QR WhatsApp</button>
+          <button id="btnQRURL" class="btn">QR URL</button>
+        </div>
+      </details>
+
+      <details><summary>Texto</summary>
+        <div class="stack">
+          <select id="selFont" class="field">
+            <option>Inter</option><option>Montserrat</option><option>Oswald</option>
+            <option>Playfair Display</option><option>Pacifico</option>
+            <option>Serif</option><option>Sans-Serif</option><option>Monospace</option>
+          </select>
+          <div class="row"><label class="lbl small">Tamaño</label><input id="inpSize" type="number" class="field" min="8" max="300" value="64" /></div>
+          <div class="row"><label class="lbl small">Color</label><input id="inpColor" type="color" class="field color" value="#111111" /></div>
+          <div class="row"><label class="lbl small">Borde</label><input id="inpStrokeColor" type="color" class="field color" value="#000000" />
+            <input id="inpStrokeWidth" type="number" class="field" min="0" max="10" value="0" style="width:4.5rem;" /></div>
+          <div class="row"><label class="lbl small">Alineación</label>
+            <div class="row">
+              <button data-align="left"   class="btn btnAlign">Izq</button>
+              <button data-align="center" class="btn btnAlign active">Centro</button>
+              <button data-align="right"  class="btn btnAlign">Der</button>
+            </div>
+          </div>
+          <button id="btnApplyText" class="btn btn-primary">Aplicar al texto seleccionado</button>
+        </div>
+      </details>
+
+      <details><summary>Imagen</summary>
+        <div class="row">
+          <button id="btnStartCrop" class="btn">Recortar en modal</button>
+        </div>
+      </details>
+
+      <details><summary>Organizar</summary>
+        <div class="grid-2">
+          <button id="btnFront" class="btn">Al frente</button>
+          <button id="btnBack"  class="btn">Al fondo</button>
+          <button id="btnFwd"   class="btn">Adelante (1)</button>
+          <button id="btnBwd"   class="btn">Atrás (1)</button>
+          <button id="btnDup"   class="btn">Duplicar</button>
+          <button id="btnDel"   class="btn">Eliminar</button>
+        </div>
+      </details>
+
+      <details><summary>Alinear al lienzo</summary>
+        <div class="grid-3">
+          <button id="alignLeft"   class="btn">Izq</button>
+          <button id="alignCenterH"class="btn">Centro H</button>
+          <button id="alignRight"  class="btn">Der</button>
+          <button id="alignTop"    class="btn">Arriba</button>
+          <button id="alignCenterV"class="btn">Centro V</button>
+          <button id="alignBottom" class="btn">Abajo</button>
+        </div>
+        <label class="row hint"><input id="chkGuides" type="checkbox" checked /> Guías / snap</label>
+      </details>
+
+      <details><summary>Marco difuminado</summary>
+        <div class="stack">
+          <div class="row"><label class="lbl small">Color</label><input id="vignetteColor" type="color" value="#000000" class="field color" /></div>
+          <div class="row"><label class="lbl small">Intensidad</label><input id="vignetteStrength" type="range" min="0" max="1" step="0.05" value="0.5" class="range" /></div>
+          <div class="row">
+            <button id="btnAddVignette" class="btn">Añadir/Actualizar</button><button id="btnRemoveVignette" class="btn">Quitar</button>
+          </div>
+        </div>
+      </details>
+
+      <details><summary>Imprimir múltiples</summary>
+        <div class="grid-2">
+          <label class="col-2">Tamaño hoja
+            <select id="selPage" class="field full">
+              <option value="a4">A4</option><option value="letter">Carta</option><option value="legal">Oficio</option>
+            </select>
+          </label>
+          <label>Margen (mm)<input id="inpMargin" type="number" value="10" class="field full"></label>
+          <label>Ancho copia (mm)<input id="inpCopyW" type="number" value="80" class="field full"></label>
+          <label>Copias<input id="inpCopies" type="number" value="8" class="field full"></label>
+          <button id="btnPrintSheet" class="btn btn-alt col-2">Generar PDF (hoja)</button>
+        </div>
+      </details>
+
+      <details><summary>QR rápido</summary>
+        <div class="stack">
+          <small class="muted">WhatsApp (formato internacional sin +)</small>
+          <input id="waPhone" class="field" placeholder="Teléfono (e.g. 5492901123456)" />
+          <input id="waMsg" class="field" placeholder="Mensaje (opcional)" />
+          <button id="btnMakeWA" class="btn btn-primary">Insertar QR WhatsApp</button>
+          <hr class="divider">
+          <input id="inURL" class="field" placeholder="https://tu-sitio.com" />
+          <button id="btnMakeURL" class="btn">Insertar QR URL</button>
+        </div>
+      </details>
+    </aside>
+
+    <main id="workspace">
+      <div id="viewport">
+        <div id="zoomBox">
+          <button id="btnZoomOut" class="btn">−</button>
+          <span id="zoomLabel" class="zoomLabel">100%</span>
+          <button id="btnZoomIn" class="btn">+</button>
+          <button id="btnZoomReset" class="btn">1:1</button>
+          <button id="btnZoomFit" class="btn">Ajustar</button>
+        </div>
+        <div id="statusBox"><span id="designInfo">Lienzo: —</span> · <span id="selInfo">Selección: —</span></div>
+        <div id="canvasOuter"><div id="canvasWrap"><canvas id="stage"></canvas></div></div>
+      </div>
+      <aside id="rightPanel">
+        <div class="panel-head"><div class="panel-title">Ayuda</div><button class="btn" id="btnCloseHelp">✕</button></div>
+        <details open><summary>Consejos</summary>
+          <ul class="help-list">
+            <li>Doble click en texto para editar.</li>
+            <li>Ctrl/Cmd + D duplica. Supr/Borrar elimina.</li>
+            <li>Zoom con botones o rueda; “Ajustar” encaja el papel.</li>
+            <li>Recortar: seleccioná imagen → Recortar en modal → Aplicar.</li>
+            <li>Exportar PNG o PDF; podés activar Monocromático.</li>
+          </ul>
+        </details>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="cropModal" class="crop-dialog">
+    <div class="crop-shell">
+      <div class="crop-bar">
+        <strong>Recortar imagen</strong>
+        <button id="cmClose" class="btn">✕</button>
+      </div>
+      <div class="crop-body">
+        <img id="cropperImage" alt="Imagen a recortar">
+      </div>
+      <div class="crop-actions">
+        <div class="row">
+          <label>Proporción
+            <select id="cropAspect" class="field">
+              <option value="free">Libre</option>
+              <option value="1">1:1</option>
+              <option value="4/3">4:3</option>
+              <option value="3/4">3:4</option>
+              <option value="16/9">16:9</option>
+              <option value="9/16">9:16</option>
+            </select>
+          </label>
+          <button id="cmZoomOut" class="btn">−</button>
+          <button id="cmZoomIn"  class="btn">+</button>
+          <button id="cmRotate"  class="btn">↻ 90°</button>
+          <button id="cmReset"   class="btn">Reset</button>
+        </div>
+        <div class="row">
+          <button id="cmApply" class="btn btn-ok">Aplicar</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
