@@ -265,10 +265,10 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
   const f = feather / scale;
 
-  let clip;
+  let mask;
   if(shape === 'circle'){
-    const radius = Math.max(w, h) / 2;
-    clip = new fabric.Circle({
+    const radius = Math.min(w, h) / 2;
+    mask = new fabric.Circle({
       radius,
       originX: 'center',
       originY: 'center',
@@ -277,14 +277,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
       fill: new fabric.Gradient({
         type: 'radial',
         gradientUnits: 'pixels',
-        coords: {
-          x1: 0,
-          y1: 0,
-          r1: Math.max(radius - f, 0),
-          x2: 0,
-          y2: 0,
-          r2: radius
-        },
+        coords: { x1: radius, y1: radius, r1: Math.max(radius - f, 0), x2: radius, y2: radius, r2: radius },
         colorStops: [
           { offset: 0, color: 'rgba(0,0,0,1)' },
           { offset: 1, color: 'rgba(0,0,0,0)' }
@@ -292,8 +285,11 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
       })
     });
   } else {
-    const maxR = Math.max(w, h) / 2;
-    clip = new fabric.Rect({
+    const maxDim = Math.max(w, h);
+    const r2 = 0.5;
+    const r1 = Math.max(r2 - f / maxDim, 0);
+
+    mask = new fabric.Rect({
       width: w,
       height: h,
       originX: 'center',
@@ -302,15 +298,8 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
       top: 0,
       fill: new fabric.Gradient({
         type: 'radial',
-        gradientUnits: 'pixels',
-        coords: {
-          x1: 0,
-          y1: 0,
-          r1: Math.max(maxR - f, 0),
-          x2: 0,
-          y2: 0,
-          r2: maxR
-        },
+        gradientUnits: 'percentage',
+        coords: { x1: 0.5, y1: 0.5, r1, x2: 0.5, y2: 0.5, r2 },
         colorStops: [
           { offset: 0, color: 'rgba(0,0,0,1)' },
           { offset: 1, color: 'rgba(0,0,0,0)' }
@@ -319,14 +308,19 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
     });
   }
 
-  obj.clipPath = clip;
+  obj.mask = mask;
+  obj._featherMask = mask;
   canvas.requestRenderAll();
 }
 
 export function removeFeatherMaskFromActive(){
   const obj = canvas.getActiveObject();
   if(!obj || !(obj instanceof fabric.Image)) return;
-  obj.clipPath = null;
+  if(obj._featherMask){
+    obj._featherMask.dispose?.();
+    delete obj._featherMask;
+  }
+  obj.mask = null;
   canvas.requestRenderAll();
 }
 
