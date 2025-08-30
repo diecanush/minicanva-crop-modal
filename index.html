@@ -93,21 +93,26 @@
           <label class="btn filelabel">Imagen
             <input id="fileImg" type="file" accept="image/*" />
           </label>
-          <button id="btnQRWA" class="btn">QR WhatsApp</button>
-          <button id="btnQRURL" class="btn">QR URL</button>
         </div>
       </details>
 
-      <details><summary>Navegación</summary>
+      <details><summary>Códigos QR</summary>
         <div class="stack">
           <div class="row">
-            <button id="btnHand" class="btn">✋ Mano</button>
-            <small class="muted">Arrastrá el lienzo. También funciona con <b>barra espaciadora</b> o con <b>dos dedos</b>.</small>
+            <label class="lbl small" for="waPhone">WhatsApp</label>
+            <input id="waPhone" type="tel" class="field" placeholder="Ej: 5491122334455" />
           </div>
           <div class="row">
-            <button id="btnZoomFit" class="btn">Ajustar</button>
-            <button id="btnZoomReset" class="btn">1:1</button>
+            <label class="lbl small" for="waMsg">Mensaje</label>
+            <input id="waMsg" type="text" class="field" placeholder="Opcional" />
           </div>
+          <button id="btnQRWA" class="btn">Generar QR WhatsApp</button>
+          <hr class="divider" />
+          <div class="row">
+            <label class="lbl small" for="inURL">URL</label>
+            <input id="inURL" type="url" class="field" placeholder="https://" />
+          </div>
+          <button id="btnQRURL" class="btn">Generar QR URL</button>
         </div>
       </details>
 
