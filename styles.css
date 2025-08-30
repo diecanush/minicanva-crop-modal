@@ -1,4 +1,4 @@
-/* CSS base */
+
 :root { --header-h: 60px; --panel-w: 20rem; --help-w: 18rem; }
 html, body { height: 100%; margin: 0; }
 body { background:#f1f5f9; color:#0f172a; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; }
@@ -6,8 +6,10 @@ body { background:#f1f5f9; color:#0f172a; font-family: system-ui, -apple-system,
 #header { position: sticky; top:0; z-index:30; background:#fff; border-bottom:1px solid #e2e8f0; }
 .header-inner { display:flex; align-items:center; justify-content:space-between; padding:.75rem 1rem; }
 .brand{font-size:1.1rem}.lbl{font-size:.9rem;margin-right:.35rem}.color{width:2.25rem;height:2.25rem;padding:.25rem}.sep-left{padding-left:.75rem;border-left:1px solid #e2e8f0}.chk{font-size:.9rem}
-.row{display:flex;align-items:center;gap:.5rem}.btn{padding:.5rem .75rem;border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;cursor:pointer}.btn-primary{background:#0f172a;color:#fff;border-color:#0f172a}.btn-ok{background:#059669;color:#fff;border-color:#059669}.btn-alt{background:#4f46e5;color:#fff;border-color:#4f46e5}.field{padding:.5rem .5rem;border:1px solid #e2e8f0;border-radius:.5rem;background:#fff}.range{width:100%}.divider{border:none;border-top:1px solid #e2e8f0}.muted{color:#64748b}.btnAlign.active{background:#0f172a;color:#fff}
-
+.row{display:flex;align-items:center;gap:.5rem}.btn{padding:.5rem .75rem;border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;cursor:pointer}
+.btn-primary{background:#0f172a;color:#fff;border-color:#0f172a}.btn-ok{background:#059669;color:#fff;border-color:#059669}.btn-alt{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.field{padding:.5rem .5rem;border:1px solid #e2e8f0;border-radius:.5rem;background:#fff}.range{width:180px}.divider{border:none;border-top:1px solid #e2e8f0}.muted{color:#64748b}.btnAlign.active{background:#0f172a;color:#fff}
+.card{border:1px solid #e2e8f0;border-radius:.5rem;padding:.5rem;background:#fff}
 #shell{height:calc(100vh - var(--header-h))}
 #leftPanel,#rightPanel{position:fixed;top:var(--header-h);bottom:0;width:var(--panel-w);max-width:85vw;background:#fff;border:1px solid #e2e8f0;z-index:40;overflow:auto;transition:transform .25s ease}
 #leftPanel{left:0;transform:translateX(-100%)}#rightPanel{right:0;transform:translateX(100%)}#leftPanel.open{transform:translateX(0)}#rightPanel.open{transform:translateX(0)}
@@ -16,17 +18,16 @@ body { background:#f1f5f9; color:#0f172a; font-family: system-ui, -apple-system,
 details{border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;margin:.5rem}summary{cursor:pointer;padding:.5rem .75rem;font-weight:600;border-bottom:1px solid #e2e8f0}details>div{padding:.75rem}
 .stack{display:flex;flex-direction:column;gap:.5rem}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;padding:.75rem}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;padding:.75rem}.col-2{grid-column:1 / span 2}.full{width:100%}
 .filelabel{text-align:center;cursor:pointer;position:relative}.filelabel input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}.hint{font-size:.9rem;padding:.5rem}
-
-#workspace{position:relative;background:#f1f5f9;overflow:hidden;display:grid;grid-template-columns:1fr auto}
+#workspace{position:relative;background:#f1f5f9;overflow:hidden;display:block}
+@media(min-width:768px){#workspace{display:grid;grid-template-columns:1fr auto}}
+.only-mobile{display:block}@media(min-width:768px){.only-mobile{display:none}}
 #viewport{width:100%;height:100%;position:relative;overflow:hidden;background:#eef2f7}
-#canvasOuter{width:100%;height:100%;display:flex;align-items:flex-start;justify-content:center}
+#canvasOuter{width:100%;height:100%;display:flex;align-items:center;justify-content:center} /* centrado contenedor */
 #canvasWrap{display:inline-block;border-radius:16px}
-
 #zoomBox{position:absolute;right:.75rem;top:.75rem;z-index:20;background:rgba(255,255,255,.9);border:1px solid #e2e8f0;border-radius:.75rem;padding:.5rem;display:flex;gap:.25rem;align-items:center}
 .zoomLabel{min-width:4ch;text-align:center;font-size:.9rem}
 #statusBox{position:absolute;left:.75rem;bottom:.75rem;z-index:20;background:rgba(255,255,255,.9);border:1px solid #e2e8f0;border-radius:.5rem;padding:.35rem .5rem;font-size:.85rem}
 .help-list{padding:.5rem .75rem;margin:.25rem 0 .5rem 1rem}
-
 .crop-dialog::backdrop{background:rgba(15,23,42,.35)}
 .crop-dialog{padding:0;border:none;max-width:92vw;width:880px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .crop-shell{display:flex;flex-direction:column;background:#fff;border-radius:12px;overflow:hidden}

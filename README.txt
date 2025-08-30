@@ -1,1 +1,1 @@
-Abrí index.html. El recorte se hace en un modal con Cropper.js.
+Incluye centrado estable, pan con mano (botón, Space o dos dedos), y zoom que respeta el pan. Abre index.html.

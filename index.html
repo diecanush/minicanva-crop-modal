@@ -3,13 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mini Canva — recorte con modal (Cropper.js)</title>
+  <title>Mini Canva — pan + centrado</title>
 
-  <!-- Librerías base -->
   <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-  <!-- Cropper.js (para el modal de recorte) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 
@@ -43,7 +41,7 @@
           <select id="selScale" class="field">
             <option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option>
           </select>
-          <label class="row chk"><input id="chkMono" type="checkbox" /> Monocromático</label>
+          <label class="row chk"><input id="chkMono" type="checkbox" /> Mono</label>
           <button id="btnPNG" class="btn btn-ok">PNG</button>
           <button id="btnPDF" class="btn btn-alt">PDF</button>
         </div>
@@ -61,6 +59,34 @@
         <button class="btn" id="btnCloseTools">✕</button>
       </div>
 
+      <details class="only-mobile" open><summary>Documento</summary>
+        <div class="stack">
+          <div class="row">
+            <label class="lbl">Formato</label>
+            <select id="selAspectM" class="field">
+              <option value="1:1" selected>1:1 (1080×1080)</option>
+              <option value="4:3">4:3 (1200×900)</option>
+              <option value="3:4">3:4 (900×1200)</option>
+              <option value="9:16">9:16 (1080×1920)</option>
+              <option value="16:9">16:9 (1920×1080)</option>
+            </select>
+          </div>
+          <div class="row">
+            <label class="lbl">Fondo</label>
+            <input id="inpBgM" type="color" class="field color" value="#ffffff" />
+          </div>
+          <div class="row">
+            <label class="lbl">Export</label>
+            <select id="selScaleM" class="field">
+              <option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option>
+            </select>
+            <label class="row chk"><input id="chkMonoM" type="checkbox" /> Mono</label>
+            <button id="btnPNGM" class="btn btn-ok">PNG</button>
+            <button id="btnPDFM" class="btn btn-alt">PDF</button>
+          </div>
+        </div>
+      </details>
+
       <details open><summary>Insertar</summary>
         <div class="grid-2">
           <button id="btnText" class="btn">Texto</button>
@@ -69,6 +95,19 @@
           </label>
           <button id="btnQRWA" class="btn">QR WhatsApp</button>
           <button id="btnQRURL" class="btn">QR URL</button>
+        </div>
+      </details>
+
+      <details><summary>Navegación</summary>
+        <div class="stack">
+          <div class="row">
+            <button id="btnHand" class="btn">✋ Mano</button>
+            <small class="muted">Arrastrá el lienzo. También funciona con <b>barra espaciadora</b> o con <b>dos dedos</b>.</small>
+          </div>
+          <div class="row">
+            <button id="btnZoomFit" class="btn">Ajustar</button>
+            <button id="btnZoomReset" class="btn">1:1</button>
+          </div>
         </div>
       </details>
 
@@ -95,8 +134,25 @@
       </details>
 
       <details><summary>Imagen</summary>
-        <div class="row">
-          <button id="btnStartCrop" class="btn">Recortar en modal</button>
+        <div class="stack">
+          <div class="row">
+            <button id="btnStartCrop" class="btn">Recortar en modal</button>
+          </div>
+          <div class="stack card">
+            <div class="row"><strong>Máscara (borde suave)</strong></div>
+            <div class="row"><label class="lbl small">Suavizado</label><input id="featherPx" type="range" min="0" max="200" step="2" value="40" class="range" /><span id="featherVal" class="lbl small">40 px</span></div>
+            <div class="row">
+              <label class="lbl small">Forma</label>
+              <select id="featherShape" class="field">
+                <option value="rect">Rectangular</option>
+                <option value="circle">Circular</option>
+              </select>
+            </div>
+            <div class="row">
+              <button id="btnApplyFeather" class="btn btn-ok">Aplicar máscara</button>
+              <button id="btnRemoveFeather" class="btn">Quitar máscara</button>
+            </div>
+          </div>
         </div>
       </details>
 
@@ -123,16 +179,6 @@
         <label class="row hint"><input id="chkGuides" type="checkbox" checked /> Guías / snap</label>
       </details>
 
-      <details><summary>Marco difuminado</summary>
-        <div class="stack">
-          <div class="row"><label class="lbl small">Color</label><input id="vignetteColor" type="color" value="#000000" class="field color" /></div>
-          <div class="row"><label class="lbl small">Intensidad</label><input id="vignetteStrength" type="range" min="0" max="1" step="0.05" value="0.5" class="range" /></div>
-          <div class="row">
-            <button id="btnAddVignette" class="btn">Añadir/Actualizar</button><button id="btnRemoveVignette" class="btn">Quitar</button>
-          </div>
-        </div>
-      </details>
-
       <details><summary>Imprimir múltiples</summary>
         <div class="grid-2">
           <label class="col-2">Tamaño hoja
@@ -146,18 +192,6 @@
           <button id="btnPrintSheet" class="btn btn-alt col-2">Generar PDF (hoja)</button>
         </div>
       </details>
-
-      <details><summary>QR rápido</summary>
-        <div class="stack">
-          <small class="muted">WhatsApp (formato internacional sin +)</small>
-          <input id="waPhone" class="field" placeholder="Teléfono (e.g. 5492901123456)" />
-          <input id="waMsg" class="field" placeholder="Mensaje (opcional)" />
-          <button id="btnMakeWA" class="btn btn-primary">Insertar QR WhatsApp</button>
-          <hr class="divider">
-          <input id="inURL" class="field" placeholder="https://tu-sitio.com" />
-          <button id="btnMakeURL" class="btn">Insertar QR URL</button>
-        </div>
-      </details>
     </aside>
 
     <main id="workspace">
@@ -168,6 +202,7 @@
           <button id="btnZoomIn" class="btn">+</button>
           <button id="btnZoomReset" class="btn">1:1</button>
           <button id="btnZoomFit" class="btn">Ajustar</button>
+          <button id="btnHandHUD" class="btn" title="Mano (arrastrar)">✋</button>
         </div>
         <div id="statusBox"><span id="designInfo">Lienzo: —</span> · <span id="selInfo">Selección: —</span></div>
         <div id="canvasOuter"><div id="canvasWrap"><canvas id="stage"></canvas></div></div>
@@ -176,11 +211,8 @@
         <div class="panel-head"><div class="panel-title">Ayuda</div><button class="btn" id="btnCloseHelp">✕</button></div>
         <details open><summary>Consejos</summary>
           <ul class="help-list">
-            <li>Doble click en texto para editar.</li>
-            <li>Ctrl/Cmd + D duplica. Supr/Borrar elimina.</li>
-            <li>Zoom con botones o rueda; “Ajustar” encaja el papel.</li>
-            <li>Recortar: seleccioná imagen → Recortar en modal → Aplicar.</li>
-            <li>Exportar PNG o PDF; podés activar Monocromático.</li>
+            <li>✋ Mano: arrastrá el lienzo (o mantené Space / 2 dedos).</li>
+            <li>“Ajustar” centra y encaja el papel en la ventana.</li>
           </ul>
         </details>
       </aside>
