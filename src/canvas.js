@@ -279,8 +279,8 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
         gradientUnits: 'pixels',
         coords: { x1: radius, y1: radius, r1: Math.max(radius - f, 0), x2: radius, y2: radius, r2: radius },
         colorStops: [
-          { offset: 0, color: 'rgba(0,0,0,1)' },
-          { offset: 1, color: 'rgba(0,0,0,0)' }
+          { offset: 0, color: 'rgba(255,255,255,1)' },
+          { offset: 1, color: 'rgba(255,255,255,0)' }
         ]
       })
     });
@@ -301,8 +301,8 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
         gradientUnits: 'percentage',
         coords: { x1: 0.5, y1: 0.5, r1, x2: 0.5, y2: 0.5, r2 },
         colorStops: [
-          { offset: 0, color: 'rgba(0,0,0,1)' },
-          { offset: 1, color: 'rgba(0,0,0,0)' }
+          { offset: 0, color: 'rgba(255,255,255,1)' },
+          { offset: 1, color: 'rgba(255,255,255,0)' }
         ]
       })
     });
