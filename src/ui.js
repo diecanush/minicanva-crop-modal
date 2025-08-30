@@ -89,7 +89,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnZoomOut').addEventListener('click', ()=> zoomTo(canvas.getZoom()/1.1));
   document.getElementById('btnZoomReset').addEventListener('click', ()=> zoomTo(1, null, true));
   document.getElementById('btnZoomFit').addEventListener('click', ()=> { setAutoCenter(true); fitToViewport(); });
-  document.getElementById('btnHand').addEventListener('click', toggleHand);
+    document.getElementById('btnHandHUD').addEventListener('click', toggleHand);
 
   // Resize/Orientation
   window.addEventListener('resize', ()=> { if(getAutoCenter()) fitToViewport(); });

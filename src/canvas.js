@@ -113,11 +113,13 @@ function updateZoomLabel(){ document.getElementById('zoomLabel').textContent = M
 
 export function fitToViewport(){
   const outer = document.getElementById('viewport'); if(!outer||!canvas) return;
-  const M = 24; const W = outer.clientWidth - M, H = outer.clientHeight - M;
+  const W = outer.clientWidth, H = outer.clientHeight;
   const w = canvas.getWidth(), h = canvas.getHeight();
   const s = Math.max(MIN_Z, Math.min(MAX_Z, Math.min(W/w, H/h)));
   const tx = (W - w*s)/2, ty = (H - h*s)/2;
-  canvas.setViewportTransform([s,0,0,s,tx,ty]); updateZoomLabel();
+  canvas.setViewportTransform([s,0,0,s,tx,ty]);
+  updateZoomLabel();
+  canvas.requestRenderAll();
 }
 
 export function zoomTo(newZ, centerPoint, recenter=false){
