@@ -113,11 +113,13 @@ function updateZoomLabel(){ document.getElementById('zoomLabel').textContent = M
 
 export function fitToViewport(){
   const outer = document.getElementById('viewport'); if(!outer||!canvas) return;
-  const M = 24; const W = outer.clientWidth - M, H = outer.clientHeight - M;
+  const W = outer.clientWidth, H = outer.clientHeight;
   const w = canvas.getWidth(), h = canvas.getHeight();
   const s = Math.max(MIN_Z, Math.min(MAX_Z, Math.min(W/w, H/h)));
   const tx = (W - w*s)/2, ty = (H - h*s)/2;
-  canvas.setViewportTransform([s,0,0,s,tx,ty]); updateZoomLabel();
+  canvas.setViewportTransform([s,0,0,s,tx,ty]);
+  updateZoomLabel();
+  canvas.requestRenderAll();
 }
 
 export function zoomTo(newZ, centerPoint, recenter=false){
@@ -250,9 +252,61 @@ export function addOrUpdateVignette(color,strength){
 }
 export function removeVignette(){ if(vignetteRect){ canvas.remove(vignetteRect); vignetteRect=null; canvas.requestRenderAll(); } }
 
-// Placeholder feather mask functions (not implemented)
-export function applyFeatherMaskToActive(){ console.warn('applyFeatherMaskToActive not implemented'); }
-export function removeFeatherMaskFromActive(){ console.warn('removeFeatherMaskFromActive not implemented'); }
+// Feather mask functions
+export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
+  const obj = canvas.getActiveObject();
+  if(!obj || !(obj instanceof fabric.Image)){
+    alert('Seleccioná una imagen para aplicar la máscara.');
+    return;
+  }
+
+  const w = obj.width;
+  const h = obj.height;
+  const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
+  const f = feather / scale;
+
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d');
+
+  let r2;
+  if(shape === 'circle'){
+    r2 = Math.min(w, h) / 2;
+  } else {
+    r2 = Math.hypot(w/2, h/2);
+  }
+
+  const grad = ctx.createRadialGradient(
+    w/2, h/2, Math.max(r2 - f, 0),
+    w/2, h/2, r2
+  );
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  const maskImg = new fabric.Image(c, { originX:'center', originY:'center', left:0, top:0 });
+
+  if(obj._featherMask){
+    obj._featherMask.dispose?.();
+  }
+
+  obj.mask = maskImg;
+  obj._featherMask = maskImg;
+  canvas.requestRenderAll();
+}
+
+export function removeFeatherMaskFromActive(){
+  const obj = canvas.getActiveObject();
+  if(!obj || !(obj instanceof fabric.Image)) return;
+  if(obj._featherMask){
+    obj._featherMask.dispose?.();
+    delete obj._featherMask;
+  }
+  obj.mask = null;
+  canvas.requestRenderAll();
+}
 
 // ===== Align using bounding box =====
 export function alignCanvas(where){
