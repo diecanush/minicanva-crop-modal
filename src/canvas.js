@@ -252,9 +252,83 @@ export function addOrUpdateVignette(color,strength){
 }
 export function removeVignette(){ if(vignetteRect){ canvas.remove(vignetteRect); vignetteRect=null; canvas.requestRenderAll(); } }
 
-// Placeholder feather mask functions (not implemented)
-export function applyFeatherMaskToActive(){ console.warn('applyFeatherMaskToActive not implemented'); }
-export function removeFeatherMaskFromActive(){ console.warn('removeFeatherMaskFromActive not implemented'); }
+// Feather mask functions
+export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
+  const obj = canvas.getActiveObject();
+  if(!obj || !(obj instanceof fabric.Image)){
+    alert('Seleccioná una imagen para aplicar la máscara.');
+    return;
+  }
+
+  const w = obj.width;
+  const h = obj.height;
+  const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
+  const f = feather / scale;
+
+  let clip;
+  if(shape === 'circle'){
+    const radius = Math.max(w, h) / 2;
+    clip = new fabric.Circle({
+      radius,
+      originX: 'center',
+      originY: 'center',
+      left: 0,
+      top: 0,
+      fill: new fabric.Gradient({
+        type: 'radial',
+        gradientUnits: 'pixels',
+        coords: {
+          x1: 0,
+          y1: 0,
+          r1: Math.max(radius - f, 0),
+          x2: 0,
+          y2: 0,
+          r2: radius
+        },
+        colorStops: [
+          { offset: 0, color: 'rgba(0,0,0,1)' },
+          { offset: 1, color: 'rgba(0,0,0,0)' }
+        ]
+      })
+    });
+  } else {
+    const maxR = Math.max(w, h) / 2;
+    clip = new fabric.Rect({
+      width: w,
+      height: h,
+      originX: 'center',
+      originY: 'center',
+      left: 0,
+      top: 0,
+      fill: new fabric.Gradient({
+        type: 'radial',
+        gradientUnits: 'pixels',
+        coords: {
+          x1: 0,
+          y1: 0,
+          r1: Math.max(maxR - f, 0),
+          x2: 0,
+          y2: 0,
+          r2: maxR
+        },
+        colorStops: [
+          { offset: 0, color: 'rgba(0,0,0,1)' },
+          { offset: 1, color: 'rgba(0,0,0,0)' }
+        ]
+      })
+    });
+  }
+
+  obj.clipPath = clip;
+  canvas.requestRenderAll();
+}
+
+export function removeFeatherMaskFromActive(){
+  const obj = canvas.getActiveObject();
+  if(!obj || !(obj instanceof fabric.Image)) return;
+  obj.clipPath = null;
+  canvas.requestRenderAll();
+}
 
 // ===== Align using bounding box =====
 export function alignCanvas(where){
