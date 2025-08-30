@@ -1,8 +1,4 @@
-diff --git a/src/canvas.js b/src/canvas.js
-index 64e17a8b66147257bff7069f059bafdb3a5b9f72..45295c5f1efdd34e7db963f276d11ac94870ee48 100644
---- a/src/canvas.js
-+++ b/src/canvas.js
-@@ -243,111 +243,102 @@ export function addOrUpdateVignette(color,strength){
+export function addOrUpdateVignette(color,strength){
      colorStops:[{offset:0,color:hexToRgba(color,0)},{offset:1,color:hexToRgba(color,Math.min(0.9,strength))}]});
    if(!vignetteRect){
      vignetteRect=new fabric.Rect({left:0,top:0,originX:'left',originY:'top',width:baseW,height:baseH,fill:gradient,selectable:false,evented:false});
@@ -16,95 +12,62 @@ index 64e17a8b66147257bff7069f059bafdb3a5b9f72..45295c5f1efdd34e7db963f276d11ac9
  export function removeVignette(){ if(vignetteRect){ canvas.remove(vignetteRect); vignetteRect=null; canvas.requestRenderAll(); } }
  
  // Feather mask functions
- export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
-   const obj = canvas.getActiveObject();
-   if(!obj || !(obj instanceof fabric.Image)){
-     alert('Seleccioná una imagen para aplicar la máscara.');
-     return;
-   }
+  export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
+    const obj = canvas.getActiveObject();
+    if(!obj || !(obj instanceof fabric.Image)){
+      alert('Seleccioná una imagen para aplicar la máscara.');
+      return;
+    }
+
+    const w = obj.width;
+    const h = obj.height;
+    const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
+    const f = feather / scale;
+
+    // prepare off-screen canvas with radial gradient
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d');
+
+    let r2;
+    if(shape === 'circle'){
+      r2 = Math.min(w, h) / 2;
+    } else {
+      r2 = Math.hypot(w/2, h/2);
+    }
+
+    const grad = ctx.createRadialGradient(
+      w/2, h/2, Math.max(r2 - f, 0),
+      w/2, h/2, r2
+    );
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,w,h);
+
+    const maskImg = new fabric.Image(c, { originX:'center', originY:'center', left:0, top:0 });
+
+    // clean previous mask
+    if(obj._featherMask){
+      obj._featherMask.dispose?.();
+    }
+
+    obj.mask = maskImg;
+    obj._featherMask = maskImg;
+    canvas.requestRenderAll();
+  }
  
-   const w = obj.width;
-   const h = obj.height;
-   const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
-   const f = feather / scale;
- 
--  let clip;
-+  let clipPath;
-   if(shape === 'circle'){
--    const radius = Math.max(w, h) / 2;
--    clip = new fabric.Circle({
-+    const radius = Math.min(w, h) / 2;
-+    clipPath = new fabric.Circle({
-       radius,
-       originX: 'center',
-       originY: 'center',
-       left: 0,
-       top: 0,
-       fill: new fabric.Gradient({
-         type: 'radial',
-         gradientUnits: 'pixels',
--        coords: {
--          x1: 0,
--          y1: 0,
--          r1: Math.max(radius - f, 0),
--          x2: 0,
--          y2: 0,
--          r2: radius
--        },
-+        coords: { x1: 0, y1: 0, r1: Math.max(radius - f, 0), x2: 0, y2: 0, r2: radius },
-         colorStops: [
-           { offset: 0, color: 'rgba(0,0,0,1)' },
-           { offset: 1, color: 'rgba(0,0,0,0)' }
-         ]
-       })
-     });
-   } else {
--    const maxR = Math.max(w, h) / 2;
--    clip = new fabric.Rect({
-+    const r2 = Math.hypot(w/2, h/2);
-+    clipPath = new fabric.Rect({
-       width: w,
-       height: h,
-       originX: 'center',
-       originY: 'center',
-       left: 0,
-       top: 0,
-       fill: new fabric.Gradient({
-         type: 'radial',
-         gradientUnits: 'pixels',
--        coords: {
--          x1: 0,
--          y1: 0,
--          r1: Math.max(maxR - f, 0),
--          x2: 0,
--          y2: 0,
--          r2: maxR
--        },
-+        coords: { x1: 0, y1: 0, r1: Math.max(r2 - f, 0), x2: 0, y2: 0, r2 },
-         colorStops: [
-           { offset: 0, color: 'rgba(0,0,0,1)' },
-           { offset: 1, color: 'rgba(0,0,0,0)' }
-         ]
-       })
-     });
-   }
- 
--  obj.clipPath = clip;
-+  obj.clipPath = clipPath;
-+  obj._featherClip = clipPath;
-   canvas.requestRenderAll();
- }
- 
- export function removeFeatherMaskFromActive(){
-   const obj = canvas.getActiveObject();
-   if(!obj || !(obj instanceof fabric.Image)) return;
-+  if(obj._featherClip){
-+    obj._featherClip.dispose?.();
-+    delete obj._featherClip;
-+  }
-   obj.clipPath = null;
-   canvas.requestRenderAll();
- }
+  export function removeFeatherMaskFromActive(){
+    const obj = canvas.getActiveObject();
+    if(!obj || !(obj instanceof fabric.Image)) return;
+    if(obj._featherMask){
+      obj._featherMask.dispose?.();
+      delete obj._featherMask;
+    }
+    obj.mask = null;
+    canvas.requestRenderAll();
+  }
  
  // ===== Align using bounding box =====
  export function alignCanvas(where){
