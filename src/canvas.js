@@ -265,7 +265,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
   const f = feather / scale;
 
-  // prepare off-screen canvas with radial gradient
+
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
@@ -285,11 +285,12 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   grad.addColorStop(0, 'rgba(255,255,255,1)');
   grad.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.fillStyle = grad;
-  ctx.fillRect(0,0,w,h);
+
+  ctx.fillRect(0, 0, w, h);
 
   const maskImg = new fabric.Image(c, { originX:'center', originY:'center', left:0, top:0 });
 
-  // clean previous mask
+
   if(obj._featherMask){
     obj._featherMask.dispose?.();
   }
