@@ -265,11 +265,11 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
   const f = feather / scale;
 
-
-  let clip;
+  let clipPath;
   if(shape === 'circle'){
     const radius = Math.min(w, h) / 2;
-    clip = new fabric.Circle({
+    clipPath = new fabric.Circle({
+
       radius,
       originX: 'center',
       originY: 'center',
@@ -287,7 +287,9 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
     });
   } else {
     const r2 = Math.hypot(w/2, h/2);
-    clip = new fabric.Rect({
+
+    clipPath = new fabric.Rect({
+
       width: w,
       height: h,
       originX: 'center',
@@ -306,8 +308,9 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
     });
   }
 
-  obj.clipPath = clip;
-  obj._featherClip = clip;
+
+  obj.clipPath = clipPath;
+  obj._featherClip = clipPath;
 
   canvas.requestRenderAll();
 }
@@ -315,6 +318,12 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
 export function removeFeatherMaskFromActive(){
   const obj = canvas.getActiveObject();
   if(!obj || !(obj instanceof fabric.Image)) return;
+
+  if(obj._featherClip){
+    obj._featherClip.dispose?.();
+    delete obj._featherClip;
+  }
+  obj.clipPath = null;
 
   canvas.requestRenderAll();
 }
