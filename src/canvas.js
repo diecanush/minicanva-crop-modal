@@ -265,46 +265,68 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
   const f = feather / scale;
 
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext('2d');
 
-  let r2;
+  let clipPath;
   if(shape === 'circle'){
-    r2 = Math.min(w, h) / 2;
+    const radius = Math.min(w, h) / 2;
+    clipPath = new fabric.Circle({
+
+      radius,
+      originX: 'center',
+      originY: 'center',
+      left: 0,
+      top: 0,
+      fill: new fabric.Gradient({
+        type: 'radial',
+        gradientUnits: 'pixels',
+        coords: { x1: radius, y1: radius, r1: Math.max(radius - f, 0), x2: radius, y2: radius, r2: radius },
+        colorStops: [
+          { offset: 0, color: 'rgba(0,0,0,1)' },
+          { offset: 1, color: 'rgba(0,0,0,0)' }
+        ]
+      })
+    });
   } else {
-    r2 = Math.hypot(w/2, h/2);
+    const r2 = Math.hypot(w/2, h/2);
+
+    clipPath = new fabric.Rect({
+
+      width: w,
+      height: h,
+      originX: 'center',
+      originY: 'center',
+      left: 0,
+      top: 0,
+      fill: new fabric.Gradient({
+        type: 'radial',
+        gradientUnits: 'pixels',
+        coords: { x1: w/2, y1: h/2, r1: Math.max(r2 - f, 0), x2: w/2, y2: h/2, r2 },
+        colorStops: [
+          { offset: 0, color: 'rgba(0,0,0,1)' },
+          { offset: 1, color: 'rgba(0,0,0,0)' }
+        ]
+      })
+    });
   }
 
-  const grad = ctx.createRadialGradient(
-    w/2, h/2, Math.max(r2 - f, 0),
-    w/2, h/2, r2
-  );
-  grad.addColorStop(0, 'rgba(255,255,255,1)');
-  grad.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
 
-  const maskImg = new fabric.Image(c, { originX:'center', originY:'center', left:0, top:0 });
+  obj.clipPath = clipPath;
+  obj._featherClip = clipPath;
 
-  if(obj._featherMask){
-    obj._featherMask.dispose?.();
-  }
-
-  obj.mask = maskImg;
-  obj._featherMask = maskImg;
   canvas.requestRenderAll();
 }
 
 export function removeFeatherMaskFromActive(){
   const obj = canvas.getActiveObject();
   if(!obj || !(obj instanceof fabric.Image)) return;
-  if(obj._featherMask){
-    obj._featherMask.dispose?.();
-    delete obj._featherMask;
+
+
+  if(obj._featherClip){
+    obj._featherClip.dispose?.();
+    delete obj._featherClip;
   }
-  obj.mask = null;
+  obj.clipPath = null;
+
   canvas.requestRenderAll();
 }
 
