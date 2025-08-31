@@ -265,6 +265,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
   const f = feather / scale;
 
+
   let clipPath;
   if(shape === 'circle'){
     const radius = Math.min(w, h) / 2;
@@ -318,6 +319,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
 export function removeFeatherMaskFromActive(){
   const obj = canvas.getActiveObject();
   if(!obj || !(obj instanceof fabric.Image)) return;
+
 
   if(obj._featherClip){
     obj._featherClip.dispose?.();
