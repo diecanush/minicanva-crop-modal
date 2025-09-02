@@ -266,52 +266,45 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   const f = feather / scale;
 
 
-  let clipPath;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d');
+
+  let r2;
   if(shape === 'circle'){
-    const radius = Math.min(w, h) / 2;
-    clipPath = new fabric.Circle({
-      radius,
-      originX: 'center',
-      originY: 'center',
-      left: 0,
-      top: 0,
-      fill: new fabric.Gradient({
-        type: 'radial',
-        gradientUnits: 'pixels',
-        coords: { x1: radius, y1: radius, r1: Math.max(radius - f, 0), x2: radius, y2: radius, r2: radius },
-        colorStops: [
-          { offset: 0, color: 'rgba(0,0,0,1)' },
-          { offset: 1, color: 'rgba(0,0,0,0)' }
-        ]
-      })
-    });
+    r2 = Math.min(w, h) / 2;
   } else {
-    const r2 = Math.hypot(w/2, h/2);
-
-    clipPath = new fabric.Rect({
-
-      width: w,
-      height: h,
-      originX: 'center',
-      originY: 'center',
-      left: 0,
-      top: 0,
-      fill: new fabric.Gradient({
-        type: 'radial',
-        gradientUnits: 'pixels',
-        coords: { x1: w/2, y1: h/2, r1: Math.max(r2 - f, 0), x2: w/2, y2: h/2, r2 },
-        colorStops: [
-          { offset: 0, color: 'rgba(0,0,0,1)' },
-          { offset: 1, color: 'rgba(0,0,0,0)' }
-        ]
-      })
-    });
+    r2 = Math.hypot(w/2, h/2);
   }
 
+  const grad = ctx.createRadialGradient(
+    w/2, h/2, Math.max(r2 - f, 0),
+    w/2, h/2, r2
+  );
+  // Usar un degradado en escala de grises para que la máscara
+  // dependa únicamente del canal alfa. El centro es opaco (1)
+  // y se desvanece suavemente hacia los bordes (0).
+  grad.addColorStop(0, 'rgba(0,0,0,1)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  if(shape === 'circle'){
+    ctx.beginPath();
+    ctx.arc(w/2, h/2, r2, 0, Math.PI*2);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    ctx.fillRect(0, 0, w, h);
+  }
 
+  const maskImg = new fabric.Image(c, { originX:'center', originY:'center', left:0, top:0 });
 
-  obj.clipPath = clipPath;
-  obj._featherClip = clipPath;
+  if(obj._featherMask){
+    obj._featherMask.dispose?.();
+  }
+
+  obj.mask = maskImg;
+  obj._featherMask = maskImg;
 
   canvas.requestRenderAll();
 }
@@ -319,11 +312,12 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
 export function removeFeatherMaskFromActive(){
   const obj = canvas.getActiveObject();
   if(!obj || !(obj instanceof fabric.Image)) return;
-  if(obj._featherClip){
-    obj._featherClip.dispose?.();
-    delete obj._featherClip;
+
+  if(obj._featherMask){
+    obj._featherMask.dispose?.();
+    delete obj._featherMask;
   }
-  obj.clipPath = null;
+  obj.mask = null;
 
   canvas.requestRenderAll();
 }
