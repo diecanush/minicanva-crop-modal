@@ -265,6 +265,7 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
   const scale = ((obj.scaleX || 1) + (obj.scaleY || 1)) / 2;
   const f = feather / scale;
 
+
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
@@ -304,17 +305,20 @@ export function applyFeatherMaskToActive(feather = 40, shape = 'rect'){
 
   obj.mask = maskImg;
   obj._featherMask = maskImg;
+
   canvas.requestRenderAll();
 }
 
 export function removeFeatherMaskFromActive(){
   const obj = canvas.getActiveObject();
   if(!obj || !(obj instanceof fabric.Image)) return;
+
   if(obj._featherMask){
     obj._featherMask.dispose?.();
     delete obj._featherMask;
   }
   obj.mask = null;
+
   canvas.requestRenderAll();
 }
 
